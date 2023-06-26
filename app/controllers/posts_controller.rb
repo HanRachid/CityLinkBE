@@ -2,7 +2,7 @@ class PostsController < ApplicationController
     before_action :set_post, only: [:show]
     
     def index
-      @posts = Post.all
+      @posts = Post.all.to_a
       render json: @posts
     end
     
@@ -11,12 +11,25 @@ class PostsController < ApplicationController
     end
     
     def create
-      @post = Post.new(post_params)
-      
-      if @post.save
-        render json: @post, status: :created
+      if params[:post_id]
+        # Create a comment
+        @post = Post.find(params[:post_id])
+        @comment = @post.comments.build(comment_params)
+    
+        if @comment.save
+          render json: @comment, status: :created
+        else
+          render json: @comment.errors, status: :unprocessable_entity
+        end
       else
-        render json: @post.errors, status: :unprocessable_entity
+        # Create a post
+        @post = Post.new(post_params)
+    
+        if @post.save
+          render json: @post, status: :created
+        else
+          render json: @post.errors, status: :unprocessable_entity
+        end
       end
     end
     
